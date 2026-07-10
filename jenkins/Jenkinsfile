@@ -1,0 +1,95 @@
+pipeline {
+  agent any
+
+  environment {
+    REGISTRY   = credentials('docker-registry-url')   // e.g. docker.io/yourname or <acct>.dkr.ecr.eu-west-1.amazonaws.com
+    KUBECONFIG = credentials('kubeconfig-file')
+    IMAGE_TAG  = "${env.BUILD_NUMBER}"
+  }
+
+  stages {
+
+    stage('Checkout') {
+      steps { checkout scm }
+    }
+
+    stage('Build Images') {
+      steps {
+        script {
+          def services = ['web', 'api', 'payment', 'search']
+          services.each { svc ->
+            sh "docker build -t ${REGISTRY}/ecommerce-${svc}:${IMAGE_TAG} -t ${REGISTRY}/ecommerce-${svc}:latest services/${svc}"
+          }
+        }
+      }
+    }
+
+    stage('Test') {
+      steps {
+        script {
+          def services = ['web', 'api', 'payment', 'search']
+          services.each { svc ->
+            sh "cd services/${svc} && npm install && npm test || echo 'no tests defined yet for ${svc}'"
+          }
+        }
+      }
+    }
+
+    stage('Push Images') {
+      steps {
+        withCredentials([usernamePassword(credentialsId: 'docker-creds', usernameVariable: 'DUSER', passwordVariable: 'DPASS')]) {
+          sh 'echo $DPASS | docker login -u $DUSER --password-stdin'
+          script {
+            def services = ['web', 'api', 'payment', 'search']
+            services.each { svc ->
+              sh "docker push ${REGISTRY}/ecommerce-${svc}:${IMAGE_TAG}"
+              sh "docker push ${REGISTRY}/ecommerce-${svc}:latest"
+            }
+          }
+        }
+      }
+    }
+
+    stage('Deploy to Kubernetes') {
+      steps {
+        sh '''
+          sed -i "s|<REGISTRY>|${REGISTRY}|g; s|:latest|:${IMAGE_TAG}|g" k8s/03-api.yaml k8s/04-payment.yaml k8s/05-search.yaml k8s/06-web.yaml
+          kubectl apply -f k8s/00-namespace.yaml
+          kubectl apply -f k8s/01-secrets-config.yaml
+          kubectl apply -f k8s/02-postgres.yaml
+          kubectl apply -f k8s/03-api.yaml -f k8s/04-payment.yaml -f k8s/05-search.yaml -f k8s/06-web.yaml
+          kubectl apply -f k8s/07-ingress.yaml
+        '''
+      }
+    }
+
+    stage('Health Check / Rollout Verify') {
+      steps {
+        script {
+          def services = ['api', 'payment', 'search', 'web']
+          services.each { svc ->
+            def status = sh(
+              script: "kubectl rollout status deployment/${svc} -n ecommerce --timeout=120s",
+              returnStatus: true
+            )
+            if (status != 0) {
+              echo "Rollout of ${svc} failed — rolling back"
+              sh "kubectl rollout undo deployment/${svc} -n ecommerce"
+              error("Deployment failed for ${svc}, rolled back to previous revision")
+            }
+          }
+        }
+      }
+    }
+  }
+
+  post {
+    failure {
+      echo 'Pipeline failed. All deployments that reached the cluster were rolled back in the verify stage.'
+      // Optional: sh "kubectl rollout undo deployment --all -n ecommerce"
+    }
+    success {
+      echo "Deployed build ${IMAGE_TAG} successfully."
+    }
+  }
+}

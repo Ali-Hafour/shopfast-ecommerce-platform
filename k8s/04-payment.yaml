@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment
+  namespace: ecommerce
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: payment } }
+  template:
+    metadata:
+      labels: { app: payment }
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "4000"
+    spec:
+      containers:
+        - name: payment
+          image: alihafor/ecommerce-payment:latest
+          ports: [{ containerPort: 4000 }]
+          resources:
+            requests: { cpu: "100m", memory: "128Mi" }
+            limits: { cpu: "300m", memory: "256Mi" }
+          readinessProbe: { httpGet: { path: /health, port: 4000 }, initialDelaySeconds: 5 }
+          livenessProbe: { httpGet: { path: /health, port: 4000 }, initialDelaySeconds: 10 }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment
+  namespace: ecommerce
+spec:
+  selector: { app: payment }
+  ports: [{ port: 4000, targetPort: 4000 }]
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: payment-hpa
+  namespace: ecommerce
+spec:
+  scaleTargetRef: { apiVersion: apps/v1, kind: Deployment, name: payment }
+  minReplicas: 2
+  maxReplicas: 8
+  metrics:
+    - type: Resource
+      resource: { name: cpu, target: { type: Utilization, averageUtilization: 70 } }

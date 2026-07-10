@@ -1,0 +1,8 @@
+---
+- name: Provision e-commerce application servers
+  hosts: app_servers
+  become: yes
+  roles:
+    - docker
+    - k8s_prereq
+    - jenkins

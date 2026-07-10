@@ -1,0 +1,24 @@
+# Requires the NGINX Ingress Controller:
+# helm install nginx-ingress ingress-nginx/ingress-nginx -n ingress-nginx --create-namespace
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ecommerce-ingress
+  namespace: ecommerce
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: shopfast.example.com   # replace with your real domain / ELB DNS
+      http:
+        paths:
+          - path: /api(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend: { service: { name: api, port: { number: 3000 } } }
+          - path: /search(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend: { service: { name: search, port: { number: 5000 } } }
+          - path: /(.*)
+            pathType: ImplementationSpecific
+            backend: { service: { name: web, port: { number: 8080 } } }
