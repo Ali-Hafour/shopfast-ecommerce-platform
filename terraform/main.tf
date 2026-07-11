@@ -1,19 +1,25 @@
-terraform {
-  required_version = ">= 1.5"
-  required_providers {
-    aws = { source = "hashicorp/aws", version = "~> 5.0" }
-  }
-  # Recommended: remote state in S3 + DynamoDB lock table
-  # backend "s3" {
-  #   bucket = "ecommerce-tfstate-bucket"
-  #   key    = "prod/terraform.tfstate"
-  #   region = "eu-west-1"
-  #   dynamodb_table = "ecommerce-tf-lock"
-  # }
+module "vpc" {
+  source = "./modules/vpc"
+
+  project_name = var.project_name
+}
+module "ecr" {
+  source = "./modules/ecr"
+
+  project_name = var.project_name
+}
+module "eks" {
+  source = "./modules/eks"
+
+  project_name    = var.project_name
+  private_subnets = module.vpc.private_subnets
+}
+module "ec2" {
+  source = "./modules/ec2"
+
+  project_name     = var.project_name
+  vpc_id           = module.vpc.vpc_id
+  public_subnet_id = module.vpc.public_subnets[0]
+  key_name         = "DevOps"
 }
 
-provider "aws" {
-  region = var.aws_region
-}
-
-data "aws_availability_zones" "available" { state = "available" }
