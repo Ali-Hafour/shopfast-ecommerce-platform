@@ -23,8 +23,8 @@ resource "aws_subnet" "public_1" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name                                             = "${var.project_name}-public-1"
-    "kubernetes.io/role/elb"                         = "1"
+    Name                                                = "${var.project_name}-public-1"
+    "kubernetes.io/role/elb"                            = "1"
     "kubernetes.io/cluster/${var.project_name}-cluster" = "shared"
   }
 }
@@ -36,8 +36,8 @@ resource "aws_subnet" "public_2" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name                                             = "${var.project_name}-public-2"
-    "kubernetes.io/role/elb"                         = "1"
+    Name                                                = "${var.project_name}-public-2"
+    "kubernetes.io/role/elb"                            = "1"
     "kubernetes.io/cluster/${var.project_name}-cluster" = "shared"
   }
 }
@@ -48,9 +48,9 @@ resource "aws_subnet" "private_1" {
   availability_zone = "us-east-1a"
 
   tags = {
-    Name                                                  = "${var.project_name}-private-1"
-    "kubernetes.io/role/internal-elb"                     = "1"
-    "kubernetes.io/cluster/${var.project_name}-cluster"   = "shared"
+    Name                                                = "${var.project_name}-private-1"
+    "kubernetes.io/role/internal-elb"                   = "1"
+    "kubernetes.io/cluster/${var.project_name}-cluster" = "shared"
   }
 }
 
@@ -60,9 +60,9 @@ resource "aws_subnet" "private_2" {
   availability_zone = "us-east-1b"
 
   tags = {
-    Name                                                  = "${var.project_name}-private-2"
-    "kubernetes.io/role/internal-elb"                     = "1"
-    "kubernetes.io/cluster/${var.project_name}-cluster"   = "shared"
+    Name                                                = "${var.project_name}-private-2"
+    "kubernetes.io/role/internal-elb"                   = "1"
+    "kubernetes.io/cluster/${var.project_name}-cluster" = "shared"
   }
 }
 

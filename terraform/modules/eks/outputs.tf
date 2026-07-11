@@ -6,3 +6,10 @@ output "cluster_endpoint" {
   value = aws_eks_cluster.this.endpoint
 }
 
+output "cluster_arn" {
+  value = aws_eks_cluster.this.arn
+}
+
+output "node_role_arn" {
+  value = aws_iam_role.node_role.arn
+}
