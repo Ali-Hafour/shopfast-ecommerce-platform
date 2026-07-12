@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: search
-          image: alihafor/ecommerce-search:latest
+          image: ECR_REGISTRY/ecommerce-devops-search:IMAGE_TAG
           ports: [{ containerPort: 5000 }]
           envFrom:
             - configMapRef: { name: app-config }

@@ -1,0 +1,57 @@
+name: CD - Deploy to EKS
+
+on:
+  workflow_run:
+    workflows:
+      - CI - Build and Push Images
+    types:
+      - completed
+
+env:
+  AWS_REGION: us-east-1
+  NAMESPACE: ecommerce
+  IMAGE_TAG: ${{ github.event.workflow_run.head_sha }}
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Configure kubeconfig
+        run: |
+          aws eks update-kubeconfig \
+            --region $AWS_REGION \
+            --name ${{ secrets.EKS_CLUSTER_NAME }}
+
+      - name: Prepare Kubernetes manifests
+        run: |
+          sed -i "s|ECR_REGISTRY|${{ secrets.ECR_REGISTRY }}|g" k8s/*.yaml
+          sed -i "s|IMAGE_TAG|${IMAGE_TAG}|g" k8s/*.yaml
+
+      - name: Deploy Kubernetes manifests
+        run: |
+          kubectl apply -f k8s/
+
+      - name: Verify Deployments
+        run: |
+          kubectl rollout status deployment/api -n $NAMESPACE
+          kubectl rollout status deployment/payment -n $NAMESPACE
+          kubectl rollout status deployment/search -n $NAMESPACE
+          kubectl rollout status deployment/web -n $NAMESPACE
+
+      - name: Show Resources
+        run: |
+          kubectl get pods -n $NAMESPACE
+          kubectl get svc -n $NAMESPACE

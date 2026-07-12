@@ -1,0 +1,30 @@
+- name: Update packages
+  dnf:
+    name: "*"
+    state: latest
+
+- name: Install required packages
+  dnf:
+    name:
+      - git
+      - unzip
+      - jq
+      - tar
+      - wget
+      - curl
+      - docker
+      - python3
+      - python3-pip
+    state: present
+
+- name: Start Docker
+  service:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Add ec2-user to docker group
+  user:
+    name: ec2-user
+    groups: docker
+    append: yes

@@ -1,0 +1,16 @@
+---
+- name: Update kubeconfig
+  become_user: ec2-user
+  shell: |
+    aws eks update-kubeconfig \
+      --region us-east-1 \
+      --name ecommerce-devops-cluster
+
+- name: Verify cluster access
+  become_user: ec2-user
+  shell: |
+    kubectl get nodes
+  register: nodes
+
+- debug:
+    var: nodes.stdout

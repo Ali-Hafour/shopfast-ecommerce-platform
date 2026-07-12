@@ -1,8 +1,12 @@
----
-- name: Provision e-commerce application servers
-  hosts: app_servers
+
+- name: Configure Bastion Server
+  hosts: bastion
   become: yes
+
   roles:
-    - docker
-    - k8s_prereq
-    - jenkins
+    - common
+    - awscli
+    - kubectl
+    - helm
+    - eks
+    - monitoring

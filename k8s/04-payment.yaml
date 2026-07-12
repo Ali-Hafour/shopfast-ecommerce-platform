@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: payment
-          image: alihafor/ecommerce-payment:latest
+          image: ECR_REGISTRY/ecommerce-devops-payment:IMAGE_TAG
           ports: [{ containerPort: 4000 }]
           resources:
             requests: { cpu: "100m", memory: "128Mi" }

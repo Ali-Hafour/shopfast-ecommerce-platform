@@ -1,0 +1,61 @@
+name: CI - Build and Push Images
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  AWS_REGION: us-east-1
+  PROJECT_NAME: ecommerce-devops
+  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and Push API Image
+        run: |
+          docker build -t ${PROJECT_NAME}-api ./services/api
+          docker tag ${PROJECT_NAME}-api:latest \
+            $ECR_REGISTRY/${PROJECT_NAME}-api:${{ github.sha }}
+          docker push \
+            $ECR_REGISTRY/${PROJECT_NAME}-api:${{ github.sha }}
+
+      - name: Build and Push Payment Image
+        run: |
+          docker build -t ${PROJECT_NAME}-payment ./services/payment
+          docker tag ${PROJECT_NAME}-payment:latest \
+            $ECR_REGISTRY/${PROJECT_NAME}-payment:${{ github.sha }}
+          docker push \
+            $ECR_REGISTRY/${PROJECT_NAME}-payment:${{ github.sha }}
+
+      - name: Build and Push Search Image
+        run: |
+          docker build -t ${PROJECT_NAME}-search ./services/search
+          docker tag ${PROJECT_NAME}-search:latest \
+            $ECR_REGISTRY/${PROJECT_NAME}-search:${{ github.sha }}
+          docker push \
+            $ECR_REGISTRY/${PROJECT_NAME}-search:${{ github.sha }}
+
+      - name: Build and Push Web Image
+        run: |
+          docker build -t ${PROJECT_NAME}-web ./services/web
+          docker tag ${PROJECT_NAME}-web:latest \
+            $ECR_REGISTRY/${PROJECT_NAME}-web:${{ github.sha }}
+          docker push \
+            $ECR_REGISTRY/${PROJECT_NAME}-web:${{ github.sha }}
