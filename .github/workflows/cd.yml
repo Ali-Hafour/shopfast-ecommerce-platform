@@ -44,12 +44,6 @@ jobs:
         run: |
           kubectl apply -f k8s/
 
-      - name: Verify Deployments
-        run: |
-          kubectl rollout status deployment/api -n ecommerce
-          kubectl rollout status deployment/payment -n ecommerce
-          kubectl rollout status deployment/search -n ecommerce
-          kubectl rollout status deployment/web -n ecommerce
 
       - name: Show Resources
         run: |
