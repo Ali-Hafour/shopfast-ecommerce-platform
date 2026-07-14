@@ -9,10 +9,13 @@ module "ecr" {
   project_name = var.project_name
 }
 module "eks" {
+
   source = "./modules/eks"
 
   project_name    = var.project_name
   private_subnets = module.vpc.private_subnets
+
+  bastion_security_group_id = module.ec2.security_group_id
 }
 module "ec2" {
   source = "./modules/ec2"
@@ -22,4 +25,5 @@ module "ec2" {
   public_subnet_id = module.vpc.public_subnets[0]
   key_name         = "DevOps"
 }
+
 

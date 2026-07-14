@@ -103,7 +103,7 @@ resource "aws_security_group" "bastion" {
 
 resource "aws_instance" "bastion" {
   ami                         = data.aws_ami.al2023.id
-  instance_type               = "t3.medium"
+  instance_type               = "t3.micro"
   subnet_id                   = var.public_subnet_id
   vpc_security_group_ids      = [aws_security_group.bastion.id]
   key_name                    = var.key_name

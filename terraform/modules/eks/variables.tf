@@ -5,3 +5,7 @@ variable "project_name" {
 variable "private_subnets" {
   type = list(string)
 }
+variable "bastion_security_group_id" {
+  type = string
+}
+

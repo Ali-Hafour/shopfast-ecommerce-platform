@@ -109,7 +109,7 @@ resource "aws_eks_node_group" "workers" {
   ami_type       = "AL2023_x86_64_STANDARD"
   capacity_type  = "ON_DEMAND"
   disk_size      = 20
-  instance_types = ["t3.medium"]
+  instance_types = ["t3.micro"]
 
   scaling_config {
     desired_size = 2
@@ -131,4 +131,16 @@ resource "aws_eks_node_group" "workers" {
   tags = {
     Name = "${var.project_name}-workers"
   }
+}
+resource "aws_security_group_rule" "bastion_to_eks_api" {
+
+  type = "ingress"
+
+  from_port = 443
+  to_port   = 443
+  protocol  = "tcp"
+
+  security_group_id = aws_eks_cluster.this.vpc_config[0].cluster_security_group_id
+
+  source_security_group_id = var.bastion_security_group_id
 }
