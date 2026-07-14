@@ -44,9 +44,7 @@ resource "aws_eks_cluster" "this" {
 }
 
 
-#################################################
-# Worker Node IAM Role
-#################################################
+
 
 resource "aws_iam_role" "node_role" {
   name = "${var.project_name}-node-role"
@@ -86,9 +84,7 @@ resource "aws_iam_role_policy_attachment" "ecr" {
 }
 
 
-#################################################
-# Required for AWS Load Balancer Controller
-#################################################
+
 
 resource "aws_iam_role_policy_attachment" "ssm" {
   role       = aws_iam_role.node_role.name
@@ -96,9 +92,7 @@ resource "aws_iam_role_policy_attachment" "ssm" {
 }
 
 
-#################################################
-# Managed Node Group
-#################################################
+
 
 resource "aws_eks_node_group" "workers" {
   cluster_name    = aws_eks_cluster.this.name
