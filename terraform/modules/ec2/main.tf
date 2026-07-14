@@ -8,9 +8,7 @@ data "aws_ami" "al2023" {
   }
 }
 
-#################################################
-# IAM ROLE
-#################################################
+
 
 resource "aws_iam_role" "bastion_role" {
   name = "${var.project_name}-bastion-role"
@@ -42,9 +40,7 @@ resource "aws_iam_instance_profile" "bastion" {
   role = aws_iam_role.bastion_role.name
 }
 
-#################################################
-# SECURITY GROUP
-#################################################
+
 
 resource "aws_security_group" "bastion" {
   name        = "${var.project_name}-bastion-sg"
@@ -97,9 +93,7 @@ resource "aws_security_group" "bastion" {
   }
 }
 
-#################################################
-# EC2 INSTANCE
-#################################################
+
 
 resource "aws_instance" "bastion" {
   ami                         = data.aws_ami.al2023.id
